@@ -125,3 +125,6 @@ body{font-family:var(--font-body,var(--font))}
   display:grid;place-items:center;font-size:1.5rem;color:#bbb}
 .member h3{font-size:1rem}
 .member p{margin-top:6px;font-size:.8rem;color:var(--sub);line-height:1.5}
+
+/* 재생 화면 뒤가 비쳐 보이지 않게 기본 검정 바탕 */
+#player{background:#000}

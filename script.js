@@ -1,7 +1,9 @@
 /* 동작 코드 - 평소엔 건드릴 필요 없어요. 앨범/곡 내용은 data.js에서 수정하세요. */
 const $ = s => document.querySelector(s);
-const bgOf = a => a.cover ? `url("${a.cover}")` : `linear-gradient(135deg, ${a.colors[0]}, ${a.colors[1]})`;
-const trackBg = (t, a) => t.img ? `url("${t.img}")` : bgOf(a);
+const grad = c => `linear-gradient(135deg, ${c[0]}, ${c[1]})`;
+// 사진이 없거나 경로가 틀려도 색 그라데이션이 대신 보이도록 겹쳐서 지정
+const bgOf = a => (a.cover ? `url('${a.cover}'), ` : "") + grad(a.colors);
+const trackBg = (t, a) => t.img ? `url('${t.img}'), ${bgOf(a)}` : bgOf(a);
 const ytId = u => { const m = (u||"").match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/); return m ? m[1] : null; };
 
 /* --- 목록 + 장르 필터 --- */
@@ -62,7 +64,13 @@ function loadVideo(id){
         if(playing) startTick(); else if(e.data !== 3) stopTick();
         if(e.data === 0 && list.length > 1) openPlayer(idx + 1);   // 끝나면 다음 곡
       },
-      onError: () => showMsg("이 영상은 사이트 안에서 재생할 수 없어요. 다른 영상 링크로 바꿔 주세요.")
+      onError: e => {
+        const c = e.data;
+        if(c === 153 || c === 152) showMsg("파일로 직접 연 화면에서는 재생이 안 돼요. Live Server나 GitHub 주소로 열어 주세요.");
+        else if(c === 101 || c === 150) showMsg("이 영상은 올린 사람이 외부 재생을 막아뒀어요. 다른 영상 링크로 바꿔 주세요.");
+        else if(c === 2 || c === 100) showMsg("영상 링크를 찾을 수 없어요. 주소가 맞는지 확인해 주세요.");
+        else showMsg("이 영상을 재생할 수 없어요. (오류 " + c + ")");
+      }
     }
   });
 }
@@ -144,8 +152,7 @@ function setupSite(){
   document.querySelector(".logo").textContent = site.title;
   $("#siteTitle").textContent = site.title;
   $("#siteDesc").textContent = site.desc;
-  $("#homeBg").style.backgroundImage = site.bg
-    ? `url("${site.bg}")` : `linear-gradient(135deg, ${site.bgColors[0]}, ${site.bgColors[1]})`;
+  $("#homeBg").style.backgroundImage = (site.bg ? `url('${site.bg}'), ` : "") + grad(site.bgColors);
 }
 function onScroll(){
   const y = window.scrollY, h = window.innerHeight;
