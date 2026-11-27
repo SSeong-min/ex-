@@ -34,6 +34,9 @@
     <section class="hero">
       <div class="hero-bg" id="heroBg"></div>
       <a href="#" class="back">← 목록</a>
+      <div class="src-switch src-album" id="albumSwitch" role="group" aria-label="앨범 전체 재생 방식">
+        <button data-s="youtube">YouTube</button><button data-s="spotify">Spotify</button>
+      </div>
       <div class="hero-inner">
         <div class="hero-cover" id="heroCover"></div>
         <div class="hero-text">
@@ -63,6 +66,9 @@
         <h2 id="pTitle"></h2>
         <p id="pArtist"></p>
         <p class="p-msg" id="pMsg" hidden></p>
+        <div class="src-switch" id="trackSwitch" role="group" aria-label="이 곡 재생 방식">
+          <button data-s="youtube">YouTube</button><button data-s="spotify">Spotify</button>
+        </div>
         <div class="p-ctrl">
           <input type="range" id="pBar" min="0" max="1000" value="0" aria-label="재생 위치">
           <div class="p-time"><span id="pCur">0:00</span><span id="pDur">0:00</span></div>
@@ -72,6 +78,7 @@
             <button id="pNext" aria-label="다음 곡">⏭</button>
           </div>
         </div>
+        <div class="p-sp"><div id="pSP"></div></div>
       </div>
       <div class="p-lyrics" id="pLyrics"><div class="p-lines" id="pLines"></div></div>
     </div>
@@ -83,5 +90,6 @@
   <script src="data.js"></script>
   <script src="script.js"></script>
   <script src="https://www.youtube.com/iframe_api" async></script>
+  <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
 </body>
 </html>
