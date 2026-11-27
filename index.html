@@ -24,7 +24,7 @@
     </section>
     <div id="grid" class="grid"></div>
     <section class="team" id="team">
-      <h2>만든 사람</h2>
+      <h2>About us</h2>
       <div class="team-grid" id="teamGrid"></div>
     </section>
   </main>
@@ -50,23 +50,30 @@
   </main>
 
   <!-- 3) 재생 화면 (곡을 누르면 위에 뜸) -->
-  <div id="player" hidden role="dialog" aria-label="곡 재생">
+  <div id="player" role="dialog" aria-label="곡 재생">
     <div class="p-bg" id="pBg"></div>
+    <button class="p-logo" id="pLogo" aria-label="앨범으로 돌아가기"></button>
     <button class="p-close" id="pClose" aria-label="닫기">✕</button>
     <div class="p-body">
-      <div class="p-cover" id="pCover"></div>
-      <h2 id="pTitle"></h2>
-      <p id="pArtist"></p>
-      <p class="p-msg" id="pMsg" hidden></p>
-      <div class="p-ctrl">
-        <input type="range" id="pBar" min="0" max="1000" value="0" aria-label="재생 위치">
-        <div class="p-time"><span id="pCur">0:00</span><span id="pDur">0:00</span></div>
-        <div class="p-nav">
-          <button id="pPrev" aria-label="이전 곡">⏮</button>
-          <button id="pToggle" class="main" aria-label="재생/일시정지">▶</button>
-          <button id="pNext" aria-label="다음 곡">⏭</button>
+      <div class="p-left">
+        <div class="p-stage">
+          <div class="p-disc" id="pDisc"><div class="p-disc-spin"><div class="p-disc-label" id="pDiscLabel"></div></div></div>
+          <div class="p-cover" id="pCover"></div>
+        </div>
+        <h2 id="pTitle"></h2>
+        <p id="pArtist"></p>
+        <p class="p-msg" id="pMsg" hidden></p>
+        <div class="p-ctrl">
+          <input type="range" id="pBar" min="0" max="1000" value="0" aria-label="재생 위치">
+          <div class="p-time"><span id="pCur">0:00</span><span id="pDur">0:00</span></div>
+          <div class="p-nav">
+            <button id="pPrev" aria-label="이전 곡">⏮</button>
+            <button id="pToggle" class="main" aria-label="재생/일시정지">▶</button>
+            <button id="pNext" aria-label="다음 곡">⏭</button>
+          </div>
         </div>
       </div>
+      <div class="p-lyrics" id="pLyrics"><div class="p-lines" id="pLines"></div></div>
       <div class="p-yt"><div id="pYT"></div></div>
     </div>
   </div>

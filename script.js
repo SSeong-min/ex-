@@ -60,6 +60,7 @@ function loadVideo(id){
       onReady: e => e.target.playVideo(),
       onStateChange: e => {
         const playing = e.data === 1;
+        $("#player").classList.toggle("playing", playing);   // 재생 중일 때만 원반이 돌아감
         $("#pToggle").textContent = playing ? "❚❚" : "▶";
         if(playing) startTick(); else if(e.data !== 3) stopTick();
         if(e.data === 0 && list.length > 1) openPlayer(idx + 1);   // 끝나면 다음 곡
@@ -75,13 +76,14 @@ function loadVideo(id){
   });
 }
 function showMsg(m){ $("#pMsg").textContent = m; $("#pMsg").hidden = !m; }
-function startTick(){ stopTick(); timer = setInterval(tick, 250); tick(); }
+function startTick(){ stopTick(); timer = setInterval(tick, 120); tick(); }
 function stopTick(){ clearInterval(timer); }
 function tick(){
   if(!yt || !yt.getDuration || dragging) return;
   const d = yt.getDuration() || 0, c = yt.getCurrentTime() || 0;
   $("#pCur").textContent = fmt(c); $("#pDur").textContent = fmt(d);
   setBar(d ? c/d*1000 : 0);
+  updateLyrics(c);
 }
 function setBar(v){ $("#pBar").value = v; $("#pBar").style.setProperty("--p", (v/10) + "%"); }
 
@@ -94,18 +96,22 @@ function openPlayer(i){
   $("#pArtist").textContent = cur.artist;
   setBar(0); $("#pCur").textContent = "0:00"; $("#pDur").textContent = t.l || "0:00";
   $("#pToggle").textContent = "▶";
-  $("#player").hidden = false;
+  $("#pDiscLabel").style.backgroundImage = trackBg(t, cur);   // 원반 가운데 라벨
+  $("#player").classList.remove("playing");
+  setLyrics(t);
+  $("#player").classList.add("open");
   document.body.classList.add("lock");
   if(id){ showMsg(""); loadVideo(id); }
   else { showMsg("이 곡은 아직 유튜브 링크가 없어요. data.js에서 url을 추가해 주세요."); if(yt) yt.stopVideo(); }
 }
 function closePlayer(){
-  $("#player").hidden = true;
+  $("#player").classList.remove("open", "playing");
   document.body.classList.remove("lock");
   stopTick();
   if(yt && yt.stopVideo) yt.stopVideo();
 }
 $("#pClose").onclick = closePlayer;
+$("#pLogo").onclick = closePlayer;
 $("#pPrev").onclick = () => openPlayer(idx - 1);
 $("#pNext").onclick = () => openPlayer(idx + 1);
 $("#pToggle").onclick = () => {
@@ -113,26 +119,100 @@ $("#pToggle").onclick = () => {
   yt.getPlayerState() === 1 ? yt.pauseVideo() : yt.playVideo();
 };
 $("#pBar").addEventListener("input", e => { dragging = true; setBar(+e.target.value);
-  if(yt && yt.getDuration) $("#pCur").textContent = fmt(yt.getDuration() * e.target.value / 1000); });
+  if(yt && yt.getDuration){ const tt = yt.getDuration() * e.target.value / 1000; $("#pCur").textContent = fmt(tt); updateLyrics(tt); } });
 $("#pBar").addEventListener("change", e => { dragging = false;
-  if(yt && yt.seekTo) yt.seekTo(yt.getDuration() * e.target.value / 1000, true); });
+  if(yt && yt.seekTo){ const tt = yt.getDuration() * e.target.value / 1000; yt.seekTo(tt, true); updateLyrics(tt); } });
 document.addEventListener("keydown", e => { if(e.key==="Escape") closePlayer(); });
 
+
+/* --- 가사 (싱크) --- */
+let curLines = [], lyIdx = -2, lyOff = 0;
+const esc = x => x.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+// "[00:12.50] 가사" 형식(LRC)을 [{t:시간(초), text}] 로 바꿈. 시간이 하나도 없으면 그냥 텍스트로 보여줌
+function parseLRC(src){
+  const timed = [], plain = [];
+  src.split(/\r?\n/).forEach(raw => {
+    const line = raw.trim();
+    if(!line || /^\[(ar|ti|al|by|offset|length|re|ve):/i.test(line)) return;
+    const stamps = [...line.matchAll(/\[(\d+):(\d+(?:[.:]\d+)?)\]/g)];
+    const text = line.replace(/\[[^\]]*\]/g, "").trim();
+    if(stamps.length) stamps.forEach(m => timed.push({ t: +m[1]*60 + parseFloat(m[2].replace(":", ".")), text }));
+    else plain.push({ t: null, text: line });
+  });
+  return timed.length ? timed.sort((a,b) => a.t - b.t) : plain;
+}
+function setLyrics(t){
+  curLines = parseLRC(t.lyrics || "");
+  lyOff = t.lyricOffset || 0;
+  lyIdx = -2;
+  const box = $("#pLyrics"), el = $("#pLines");
+  el.style.transform = "";
+  if(!curLines.length){
+    box.classList.add("plain");
+    el.innerHTML = `<p class="ly-empty">가사가 없어요</p>`;
+    return;
+  }
+  box.classList.toggle("plain", curLines[0].t === null);
+  el.innerHTML = curLines.map((l,i) => `<p class="ly" data-i="${i}">${esc(l.text) || "♪"}</p>`).join("");
+  el.querySelectorAll(".ly").forEach(p => p.onclick = () => {      // 가사를 누르면 그 부분으로 이동
+    const l = curLines[+p.dataset.i];
+    if(l.t !== null && yt && yt.seekTo){ yt.seekTo(Math.max(0, l.t - lyOff), true); updateLyrics(l.t - lyOff); }
+  });
+  placeLyrics(0);
+}
+function placeLyrics(i){
+  const box = $("#pLyrics"), el = $("#pLines"), line = el.children[Math.max(i, 0)];
+  if(!line || box.classList.contains("plain")) return;
+  el.style.transform = `translateY(${box.clientHeight/2 - (line.offsetTop + line.offsetHeight/2)}px)`;
+}
+function updateLyrics(time){
+  if(!curLines.length || curLines[0].t === null) return;
+  const t = time + lyOff;
+  let idx = -1;
+  for(let i = 0; i < curLines.length; i++){ if(curLines[i].t <= t) idx = i; else break; }
+  if(idx === lyIdx) return;
+  lyIdx = idx;
+  const kids = $("#pLines").children;
+  for(let i = 0; i < kids.length; i++) kids[i].classList.toggle("active", i === idx);
+  placeLyrics(idx);                                    // 한 줄 끝날 때마다 한 줄씩 위로
+}
+window.addEventListener("resize", () => placeLyrics(lyIdx));
+
 /* --- 주소(#앨범id)에 따라 화면 전환 --- */
-let wasDetail = false;
+let wasDetail = false, routeTimer = null;
+const jump = y => window.scrollTo({ top: y, behavior: "instant" });
 function route(){
   closePlayer();
+  clearTimeout(routeTimer);
   const a = albums.find(x => x.id === location.hash.slice(1));
-  $("#home").hidden = !!a; $("#detail").hidden = !a;
-  $("#filters").hidden = !!a;
-  if(a) renderDetail(a); else document.title = site.title;
-  if(!a && wasDetail){
-    // 앨범 화면에서 돌아오면 첫 화면이 아니라 앨범 목록 위치로
-    window.scrollTo({ top: $("#grid").getBoundingClientRect().top + window.scrollY - 70, behavior: "instant" });
-  } else {
-    window.scrollTo({ top: 0, behavior: "instant" });
+  const detail = $("#detail"), home = $("#home");
+
+  if(a){                                   // 앨범 들어가기: 아래에서 위로 올라오며 나타남
+    home.hidden = true; detail.hidden = false; $("#filters").hidden = true;
+    detail.classList.remove("leaving", "enter");
+    renderDetail(a);
+    jump(0);
+    void detail.offsetWidth;               // 애니메이션 다시 시작
+    detail.classList.add("enter");
+    wasDetail = true;
+  } else if(wasDetail){                    // 앨범에서 나가기: 반대로 내려가며 사라진 뒤 목록 표시
+    document.title = site.title;
+    detail.classList.remove("enter");
+    detail.classList.add("leaving");
+    routeTimer = setTimeout(() => {
+      detail.hidden = true; detail.classList.remove("leaving");
+      home.hidden = false; $("#filters").hidden = false;
+      home.classList.remove("fadein"); void home.offsetWidth; home.classList.add("fadein");
+      jump($("#grid").getBoundingClientRect().top + window.scrollY - 70);   // 앨범 목록 위치로
+      wasDetail = false;
+      onScroll();
+    }, 350);
+  } else {                                 // 처음 접속
+    home.hidden = false; detail.hidden = true; $("#filters").hidden = false;
+    document.title = site.title;
+    jump(0);
   }
-  wasDetail = !!a;
 }
 window.addEventListener("hashchange", route);
 
@@ -150,6 +230,7 @@ function setupSite(){
   applyFont(site.fontTitle, "--font-title");
   applyFont(site.fontBody, "--font-body");
   document.querySelector(".logo").textContent = site.title;
+  $("#pLogo").textContent = site.title;      // 재생 화면 왼쪽 위 로고: 누르면 그 앨범 화면으로
   $("#siteTitle").textContent = site.title;
   $("#siteDesc").textContent = site.desc;
   $("#homeBg").style.backgroundImage = (site.bg ? `url('${site.bg}'), ` : "") + grad(site.bgColors);

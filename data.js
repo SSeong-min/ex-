@@ -1,7 +1,7 @@
 /* =====================================================================
-   여기만 수정하면 됩니다! (앨범 / 곡 / 사진 / 유튜브 링크)
+   여기만 수정하면 됨 (앨범 / 곡 / 사진 / 유튜브 링크)
    =====================================================================
-   [앨범 하나 양식]  복사해서 붙여넣고 내용만 바꾸세요. 앨범 사이엔 쉼표(,)
+   [앨범 하나 양식]  복사해서 붙여넣고 내용만 바꿔. 앨범 사이엔 쉼표(,)
 
    {
      id:"영어-소문자-id",          // 앨범마다 달라야 함 (공백 대신 - 사용)
@@ -9,7 +9,7 @@
      artist:"아티스트",
      year:2024,
      genre:"장르",                 // 같은 장르끼리 위쪽 버튼으로 묶임
-     cover:"images/앨범사진.jpg",   // 앨범 대표 사진. 비우면 아래 colors 색 그라데이션
+     cover:"images/앨범사진.jpg", 컬러는 앨범 표지 없을때 표시되는거   // 앨범 대표 사진. 비우면 아래 colors 색 그라데이션
      colors:["#222222","#888888"],
      desc:"설명글을 추가하시오",
      tracks:[
@@ -30,14 +30,14 @@ const site = {
   /* ===== 글씨체 (구글 폰트 이름을 그대로 적으면 자동 적용, 비우면 기본 글씨체) =====
      fontTitle : 제목류 (사이트 제목, 앨범 제목, 로고)   예: "Playfair Display", "Black Han Sans", "Noto Serif KR"
      fontBody  : 나머지 모든 글씨                        예: "Noto Sans KR", "Nanum Myeongjo", "Gowun Batang"
-     폰트 이름은 fonts.google.com 에서 찾아서 이름만 복사해 넣으세요. */
+     폰트 이름은 fonts.google.com 에서 찾아서 이름만 복사해 넣기. */
   fontTitle: "",
   fontBody:  ""
 };
 
 const albums = [
-  { id:"night-drive", title:"Night Drive", artist:"Ruel", year:2024, genre:"Electronic",
-    cover:"", colors:["#1b2a49","#6a3df0"],
+  { id:"ex-file", title:"ex file", artist:"Ruel", year:2024, genre:"pop",
+    cover:"image/루엘 앨범.png", colors:["#1b2a49","#6a3df0"],
     desc:"설명글을 추가하시오",
     tracks:[
       { t:"Night Drive", l:"3:42", main:true, url:"https://www.youtube.com/watch?v=3YHGEuefsbI&list=PLT1VpimKCSOBqEP4ibGwRqpfoGN3g502T&index=3", img:"image/painkiller.png" },
