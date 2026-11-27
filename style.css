@@ -199,3 +199,6 @@ body{font-family:var(--font-body,var(--font))}
 .p-logo{position:fixed;top:16px;left:24px;z-index:2;background:none;border:0;color:#fff;cursor:pointer;
   font-family:var(--font-title,var(--font-body,var(--font)));font-weight:700;font-size:1.1rem;letter-spacing:.02em;line-height:1.5;padding:0}
 .p-logo:hover{opacity:.75}
+
+/* 숨은 재생기: 재생 화면 효과(투명, 이동)의 영향을 받지 않게 바깥에 두고, 유튜브 최소 크기(200px)를 지킴 */
+.p-yt{position:fixed;left:0;bottom:0;width:200px;height:200px;opacity:.001;pointer-events:none;overflow:hidden;z-index:-1}

@@ -44,7 +44,7 @@ function renderDetail(a){
 }
 
 /* --- 재생 화면 (유튜브 영상은 숨기고 소리 + 진행바만 사용) --- */
-let yt = null, apiReady = false, pendingId = null, dragging = false, timer = null;
+let hintTimer = null, yt = null, apiReady = false, pendingId = null, dragging = false, timer = null;
 const fmt = s => { s = Math.max(0, Math.floor(s||0)); return Math.floor(s/60) + ":" + String(s%60).padStart(2,"0"); };
 
 window.onYouTubeIframeAPIReady = () => { apiReady = true; if(pendingId) loadVideo(pendingId); };
@@ -61,6 +61,7 @@ function loadVideo(id){
       onStateChange: e => {
         const playing = e.data === 1;
         $("#player").classList.toggle("playing", playing);   // 재생 중일 때만 원반이 돌아감
+        if(playing) showMsg("");
         $("#pToggle").textContent = playing ? "❚❚" : "▶";
         if(playing) startTick(); else if(e.data !== 3) stopTick();
         if(e.data === 0 && list.length > 1) openPlayer(idx + 1);   // 끝나면 다음 곡
@@ -96,12 +97,21 @@ function openPlayer(i){
   $("#pArtist").textContent = cur.artist;
   setBar(0); $("#pCur").textContent = "0:00"; $("#pDur").textContent = t.l || "0:00";
   $("#pToggle").textContent = "▶";
-  $("#pDiscLabel").style.backgroundImage = trackBg(t, cur);   // 원반 가운데 라벨
   $("#player").classList.remove("playing");
-  setLyrics(t);
+  try{                                                   // 원반/가사에 문제가 생겨도 음악 재생은 계속되게
+    $("#pDiscLabel").style.backgroundImage = trackBg(t, cur);   // 원반 가운데 라벨
+    setLyrics(t);
+  }catch(err){ console.error(err); }
   $("#player").classList.add("open");
   document.body.classList.add("lock");
-  if(id){ showMsg(""); loadVideo(id); }
+  if(id){
+    showMsg(""); loadVideo(id);
+    clearTimeout(hintTimer);                             // 3초 안에 재생이 안 시작되면 ▶ 누르라고 안내
+    hintTimer = setTimeout(() => {
+      if($("#player").classList.contains("open") && !$("#player").classList.contains("playing") && !$("#pMsg").textContent)
+        showMsg("재생이 시작되지 않았어요. ▶ 버튼을 눌러 주세요.");
+    }, 3000);
+  }
   else { showMsg("이 곡은 아직 유튜브 링크가 없어요. data.js에서 url을 추가해 주세요."); if(yt) yt.stopVideo(); }
 }
 function closePlayer(){

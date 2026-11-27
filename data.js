@@ -37,7 +37,7 @@ const site = {
 
 const albums = [
   { id:"ex-file", title:"ex file", artist:"Ruel", year:2024, genre:"pop",
-    cover:"image/루엘 앨범.png", colors:["#1b2a49","#6a3df0"],
+    cover:"image/ruel.png", colors:["#1b2a49","#6a3df0"],
     desc:"설명글을 추가하시오",
     tracks:[
       { t:"Night Drive", l:"3:42", main:true, url:"https://www.youtube.com/watch?v=3YHGEuefsbI&list=PLT1VpimKCSOBqEP4ibGwRqpfoGN3g502T&index=3", img:"image/painkiller.png" },
